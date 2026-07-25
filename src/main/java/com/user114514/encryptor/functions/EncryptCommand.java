@@ -16,6 +16,7 @@ import com.beust.jcommander.Parameters;
 import com.user114514.encryptor.excep.UnknownProcessorNameException;
 import com.user114514.encryptor.utils.GeneralEncryptor;
 import com.user114514.encryptor.utils.encoders.HexEncoder;
+import com.user114514.encryptor.utils.encryptors.StandardAesGcmEncryptor;
 import com.user114514.encryptor.utils.encryptors.XOREncryptor;
 
 @Parameters(commandNames = "encrypt", commandDescription = "对一串数据进行加密。")
@@ -112,7 +113,11 @@ public class EncryptCommand {
         if (encryptor == null || encryptor.isBlank())
             throw new UnknownProcessorNameException("空的加密器名称。");
         switch (encryptor.toLowerCase()) {
-           case "xor": return new XOREncryptor();
+            case "xor": return new XOREncryptor();
+            case "aes":
+            case "aes-gcm":
+            case "std-aes":
+            case "std-aes-gcm": return new StandardAesGcmEncryptor();
         }
         throw new UnknownProcessorNameException("未知或不支持的加密器：" + encryptor);
     }

@@ -16,6 +16,10 @@ import com.beust.jcommander.Parameters;
 import com.user114514.encryptor.excep.UnknownProcessorNameException;
 import com.user114514.encryptor.utils.GeneralEncryptor;
 import com.user114514.encryptor.utils.encoders.HexEncoder;
+import com.user114514.encryptor.utils.encryptors.BlowfishEncryptor;
+import com.user114514.encryptor.utils.encryptors.DesEdeEncryptor;
+import com.user114514.encryptor.utils.encryptors.DesEncryptor;
+import com.user114514.encryptor.utils.encryptors.Rc2Encryptor;
 import com.user114514.encryptor.utils.encryptors.StandardAesGcmEncryptor;
 import com.user114514.encryptor.utils.encryptors.XOREncryptor;
 
@@ -118,7 +122,11 @@ public class EncryptCommand {
             case "aes-gcm":
             case "std-aes":
             case "std-aes-gcm": return new StandardAesGcmEncryptor();
+            case "des": return new DesEncryptor();
+            case "desede": return new DesEdeEncryptor();
+            case "blowfish": return new BlowfishEncryptor();
+            case "rc2": return new Rc2Encryptor();
         }
-        throw new UnknownProcessorNameException("未知或不支持的加密器：" + encryptor);
+        throw new UnknownProcessorNameException("未知或不支持的加密器：" + encryptor + ", 输入 --avaible-encryptor 查看可用的加密器。");
     }
 }

@@ -119,6 +119,6 @@ public class DecodeCommand {
                 throw e;
             }
         }
-        throw new UnknownProcessorNameException("未知或不支持的解码器：" + encoder);
+        throw new UnknownProcessorNameException("未知或不支持的解码器：" + encoder + ", 输入 --available-encoder 查看可用的解码器。");
     }
 }

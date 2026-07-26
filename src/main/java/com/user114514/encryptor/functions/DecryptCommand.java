@@ -127,6 +127,6 @@ public class DecryptCommand {
             case "blowfish": return new BlowfishEncryptor();
             case "rc2": return new Rc2Encryptor();
         }
-        throw new UnknownProcessorNameException("未知或不支持的解密器：" + encryptor + ", 输入 --avaible-encryptor 查看可用的解密器。");
+        throw new UnknownProcessorNameException("未知或不支持的解密器：" + encryptor + ", 输入 --available-encryptor 查看可用的加密器。");
     }
 }

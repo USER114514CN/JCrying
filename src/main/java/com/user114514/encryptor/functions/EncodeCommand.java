@@ -130,6 +130,6 @@ public class EncodeCommand {
                 throw e;
             }
         }
-        throw new UnknownProcessorNameException("未知或不支持的编码器：" + encoder);
+        throw new UnknownProcessorNameException("未知或不支持的编码器：" + encoder + ", 输入 --available-encoder 查看可用的编码器。");
     }
 }

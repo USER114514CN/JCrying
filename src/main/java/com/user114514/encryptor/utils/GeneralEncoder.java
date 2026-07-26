@@ -2,10 +2,22 @@ package com.user114514.encryptor.utils;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.user114514.encryptor.excep.IllegalDataException;
 
 public abstract class GeneralEncoder {
+    protected Map<String, String> options;
+
+    public GeneralEncoder() {
+        this(new HashMap<>());
+    }
+
+    public GeneralEncoder(Map<String, String> options) {
+        this.options = options;
+    }
+
     public abstract byte[] encode(byte[] data);
     public abstract byte[] decode(byte[] data) throws IllegalDataException;
 

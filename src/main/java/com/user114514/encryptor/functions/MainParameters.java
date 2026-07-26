@@ -16,14 +16,14 @@ public class MainParameters {
     public boolean help;
 
     @Parameter(
-        names = {"--avaible-encoder", "-aE"},
+        names = {"--available-encoder", "--supported-encoder", "-aE"},
         description = "输出当前版本可用的编码器。",
         arity = 0
     )
     public boolean avaibleEncoder;
 
     @Parameter(
-        names = {"--avaible-encryptor", "-aX"},
+        names = {"--available-encryptor", "--supported-encryptor", "-aX"},
         description = "输出当前版本可用的加密器。",
         arity = 0
     )

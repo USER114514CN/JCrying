@@ -29,3 +29,9 @@ P.S. 如果-Ttext后面的文本全部由ASCII字符组成，-Tencoding可以不
 ### 更新日志
 beta-v0.3.1 Standard Encryption Algorithm Update
 更新了一些非主流的标准算法，包括但不限于 DES/3DES/Blowfish
+
+beta-v0.2 AES Update
+更新了标准对称加密库 AES-GCM。
+
+v0.1
+公测并开源。

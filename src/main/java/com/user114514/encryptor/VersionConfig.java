@@ -16,6 +16,10 @@ public class VersionConfig {
     
     public static final String[] SUPPORTED_ENCRYPTOR = {
         "异或加密(cipher[i]=data[i] ^ key[i % key.length]): xor",
-        "AES-GCM: aes aes-gcm std-aes std-aes-gcm"
+        "AES-GCM: aes aes-gcm std-aes std-aes-gcm",
+        "DES: des",
+        "DesEde: desede",
+        "Blowfish: blowfish",
+        "RC2: rc2"
     };
 }

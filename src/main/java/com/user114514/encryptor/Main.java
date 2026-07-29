@@ -12,7 +12,6 @@ import com.user114514.encryptor.functions.MainParameters;
 public class Main {
     public static void main(String[] args) {
         try {
-            //args = new String[] { "decode", "--decoder", "b64", "-Ttext=zxX", "-Tencoding=UTF-8"};
             MainParameters mainParameters = new MainParameters();
             EncodeCommand encodeCommand = new EncodeCommand();
             DecodeCommand decodeCommand = new DecodeCommand();

@@ -42,6 +42,9 @@ public class DecodeCommand {
     @Parameter(names = { "--hex-output", "-A" }, description = "将解码器的输出以二进制输出在控制台。", arity = 0)
     public boolean hexOutput;
 
+    @Parameter(names = {"--info", "-I"}, description = "展示详细信息。", arity = 0)
+    public boolean info;
+
     public byte[] getData() throws Exception {
         if (textData != null && !textData.isEmpty()) {
             if (!textData.containsKey("text"))

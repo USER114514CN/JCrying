@@ -2,7 +2,7 @@ package com.user114514.encryptor;
 
 public class VersionConfig {
     public static final int VER_CODE = 1;
-    public static final String VER_NAME = "beta-v0.3";
+    public static final String VER_NAME = "beta-v0.4";
     public static final String APPLICATION_NAME = "jcrying";
 
     public static final String[] SUPPORTED_ENCODER = {

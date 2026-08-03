@@ -58,6 +58,9 @@ public class EncryptCommand {
 
     @Parameter(names = { "--key-file", "-kF" }, description = "存储的密钥的文件。", arity = 1)
     public String fromKeyFile;
+    
+    @Parameter(names = {"--info", "-I"}, description = "展示详细信息。", arity = 0)
+    public boolean info;
 
     public EncryptCommand() {
 

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>JCrying Tool Document & Download</title>
+    <style>
+        @keyframes pageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        body {
+            background-color: #343434;
+            font-family: SimSun, Serif, Monospace, monospace;
+            margin: 0;
+            padding: 20px;
+            color: #FFFFFF;
+            text-align: center;
+            animation: pageFadeIn 0.7s cubic-bezier(0.2, 0, 0.2, 1);
+            overflow: scroll;
+            height: 100vh;
+        }
+
+        h1 {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .hidden-menu {
+            background-color: #222222;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 20px auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            position: relative;
+            transition: padding 0.2s ease-out;
+        }
+
+        .hidden-menu:not(.show):hover {
+            padding: 15px;
+        }
+
+        .hidden-menu-sub {
+            height: 0px;
+            overflow: hidden;
+            background-color: #1E1E1E;
+            margin-top: 10px;
+            opacity: 0;
+            padding: 0;
+            transition: opacity 0.7s ease-out, height 0.7s cubic-bezier(0.2, 0, 0.2, 1), padding 0.7s ease-out;
+        }
+
+        .hidden-menu>label {
+            display: inline;
+            font-size: 18px;
+        }
+
+        .menu-expand-button {
+            display: inline-block;
+            background-color: #00000000;
+            color: #FFFFFF;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 16px;
+            transition: transform 0.7s ease-out;
+            position: absolute;
+            right: 10px;
+        }
+
+        .hidden-menu.show>.menu-expand-button {
+            transform: rotate(180deg);
+        }
+
+        .hidden-menu.show>.hidden-menu-sub {
+            height: 450px;
+            opacity: 1;
+            padding: 10px;
+            overflow: scroll;
+        }
+
+        a {
+            color: #1E90FF;
+            text-decoration: none;
+        }
+
+        b {
+            color: #FFD700;
+        }
+
+        code {
+            display: inline-block;
+            background-color: #2E2E2E;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, "Courier New", monospace;
+        }
+
+        .attention {
+            color: #FF4500;
+            font-weight: bold;
+        }
+
+        .card {
+            background-color: #2E2E2E;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .rating-container {
+            width: 420px;
+            margin: 50px auto;
+            font-family: system-ui;
+        }
+
+        .rating-title {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .range-wrap {
+            position: relative;
+            padding: 10px 0 25px;
+        }
+
+        /* 美化滑块 */
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 99px;
+            outline: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* 刻度 */
+        .tick-list {
+            display: flex;
+            justify-content: space-between;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+        .tick-list span {
+            font-size: 12px;
+            color: #e7e7e7;
+        }
+
+        .score-show {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 500;
+            color: #2563eb;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>JCrying Tool 文档与下载</h1>
+    <div class="card">
+        <div style="display: inline-block; text-align: center;">
+            <img src="./java_icon.jpg" alt="Java Icon" style="width: 100px; height: 100px; border-radius: 15%;">
+            <h1>JCrying Tool</h1>
+        </div>
+        <div style="display: inline-block; text-align: left; margin-left: 20px; vertical-align: top;">
+            <p>JCrying Tool 是一个用于编码、解码、加密、解密数据的工具。</p>
+            <p>作者: Github/USER114514CN</p>
+            <footer style="margin-top: 75px; font-size: 14px; color: #AAAAAA;">
+                <p> | <a href="https://github.com/USER114514CN/" target="_blank">关于我</a> | <a
+                        href="https://github.com/USER114514CN/JCrying/" target="_blank">Github 仓库</a> | </p>
+            </footer>
+        </div>
+    </div>
+    <div class="hidden-menu">
+        <label>下载</label>
+        <span class="menu-expand-button" onclick="toggleMenu(this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff">
+                <path d="M5 8l7 7 7-7z" />
+            </svg>
+        </span>
+        <div class="hidden-menu-sub">
+            <a href="https://github.com/USER114514CN/JCrying/" target="_blank">Github 仓库链接(包含Jar/MSI/源码)</a><br />
+            <a href="./internal-installer.msi" target="_blank">此 Github Pages 内置MSI下载链接</a><br />
+            <a href="./internal-jar.jar" target="_blank">此 Github Pages 内置Jar下载链接</a><br />
+            <footer>如果您当前无法访问 Github, 可以使用此 Github Pages 上的 MSI 与 Jar 文件。但源码等请到 Github 仓库获取。</footer>
+        </div>
+    </div>
+    <div class="hidden-menu">
+        <label>帮助文档与使用示例</label>
+        <span class="menu-expand-button" onclick="toggleMenu(this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff">
+                <path d="M5 8l7 7 7-7z" />
+            </svg>
+        </span>
+        <div class="hidden-menu-sub">
+            <p>欢迎使用 JCrying Tool! JCrying Tool 是一个用于编码、解码、加密、解密数据的工具。</p>
+            <p>JCrying 的交互方式是通过命令行界面进行操作。</p>
+            <h4>帮助</h4>
+            <p>在 JCrying 中，您可以使用以下命令进行操作：</p>
+            <div>
+                <ul>
+                    <li><b>encode</b>: 用于编码数据。</li>
+                    <li><b>decode</b>: 用于解码数据。</li>
+                    <li><b>encrypt</b>: 用于加密数据。</li>
+                    <li><b>decrypt</b>: 用于解密数据。</li>
+                </ul>
+            </div>
+            <p>每个命令都有其特定与通用的参数和选项。</p>
+            <div>
+                <h6>参选项数</h6>
+                <ul>
+                    <li><b>--help -h</b>: 显示帮助信息</li>
+                    <li><b>--version -v</b>: 显示版本信息</li>
+                    <li><b>--available-encoder -aE</b>: 显示可用的编码器列表</li>
+                    <li><b>--available-encryptor -aX</b>: 显示可用的加密器列表</li>
+                </ul>
+                <h6>encode/decode 参数</h6>
+                <ul>
+                    <li><b>--encoder -X</b>: 指定编码器类型</li>
+                    <li><b>--decoder -X</b>: 指定解码器类型</li>
+                    <li><b>--text -T</b>: 指定要编码/解码的文本(语法 --text key=value 或 -Tkey=value)</li>
+                    <li><b>--file -f</b>: 指定输入文件路径</li>
+                    <li><b>--write-file -w</b>: 指定输出文件路径</li>
+                    <li><b>--url -u</b>: 自动从 URL 获取数据并传入编/解码器, 支持的协议有 http, https, ftp, file, data 等</li>
+                    <li><b>--info -I</b>: 显示编码/解码信息</li>
+                    <li><b>--streaming -S</b>: 启用流式处理, 这会显著降低程序在处理时所占用的运行时内存</li>
+                    <li><b>--streaming-buffer-size -B</b>: 指定流式处理的缓冲区大小(单位: 字节)。这与程序处理数据占用的运行时内存成正相关, 处理速度成负相关, 默认 4MB
+                    </li>
+                    <li><b>--options -O</b>: 指定编/解码器的选项，</li>
+                </ul>
+                <h6>encrypt/decrypt 参数</h6>
+                <ul>
+                    <li><b>--encryptor -X</b>: 指定加密器类型</li>
+                    <li><b>--decryptor -X</b>: 指定解密器类型</li>
+                    <li><b>--key-text -kT</b>: 指定加密/解密的文本密钥(语法--key-text key=value 或 -kTkey=value)</li>
+                    <li><b>--key-hex -kH</b>: 指定加密/解密的十六进制密钥(语法--key-hex key=value 或 -kHkey=value)</li>
+                    <li><b>--key-file -kF</b>: 指定加密/解密的密钥文件路径</li>
+                    <li><b>--file -f</b>: 指定输入文件路径</li>
+                    <li><b>--write-file -w</b>: 指定输出文件路径</li>
+                    <li><b>--url -u</b>: 自动从 URL 获取数据并传入加/解密器, 支持的协议有 http, https, ftp, file, data 等</li>
+                    <li><b>--info -I</b>: 显示加密/解密信息</li>
+                </ul>
+            </div>
+            <em class="attention">注意: 以上参数和选项的使用方式如与 <code>--help</code> 选项的文档冲突, 请以 <code>--help</code> 选项的文档为准。</em>
+            <h4>使用示例</h4>
+            <p>以下是一些使用 JCrying Tool 的示例命令：</p>
+            <ul>
+                <li>
+                    <div><b>帮助</b></div>
+                    <div><code>jcrying --help</code></div>
+                </li>
+                <li>
+                    <div><b>Base64编码Hello, World!</b></div>
+                    <div><code>jcrying encode --encoder b64 "-Ttext=Hello, World!"</code></div>
+                </li>
+                <li>
+                    <div><b>Base64解码Hello, World!</b></div>
+                    <div><code>jcrying decode --decoder b64 "-Ttext=SGVsbG8sIFdvcmxkIQ=="</code></div>
+                </li>
+                <li>
+                    <!--卧槽他妈的为什么代码写到这头皮这么痒-->
+                    <div><b>十六进制编码非 ASCII 字符</b></div>
+                    <div><code>jcrying encode --encoder hex "-Ttext=非 ASCII 字符" -Tencoding=UTF-8</code></div>
+                </li>
+                <li>
+                    <div><b>从example.com获取数据并使用XOR异或加密</b></div>
+                    <div>
+                        <code>jcrying encrypt --encryptor xor "-kTkey=your_secret_key" --url "http://example.com/data.txt"</code>
+                    </div>
+                </li>
+                <li>
+                    <div><b>使用 AES 对 mysterious_image.png 加密到 mysterious_image_encrypted.png</b></div>
+                    <div>
+                        <code>jcrying encrypt --encryptor aes -kTkey=length_must_be_16_24_32_bytes000 --file "path/to/mysterious_image.png" --write-file "path/to/mysterious_image_encrypted.png"</code>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="hidden-menu">
+        <label>反馈与支持</label>
+        <span class="menu-expand-button" onclick="toggleMenu(this)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#ffffff">
+                <path d="M5 8l7 7 7-7z" />
+            </svg>
+        </span>
+        <div class="hidden-menu-sub">
+            <p>如果您在使用 JCrying Tool 时遇到任何问题，欢迎通过以下方式联系我们：</p>
+            <ul>
+                <li><a href="https://github.com/USER114514CN/JCrying/issues" target="_blank">报告问题</a></li>
+                <li><a href="https://github.com/USER114514CN/JCrying/discussions" target="_blank">参与讨论</a></li>
+            </ul>
+            <div class="rating-container">
+                <div class="rating-title">您对文档的评分</div>
+                <div class="range-wrap">
+                    <input class="rating-slider" type="range" min="0" max="5" step="0.5">
+                    <div class="tick-list">
+                        <span>害人</span>
+                        <span>恶心</span>
+                        <span>极差</span>
+                        <span>差劲</span>
+                        <span>较差</span>
+                        <span>一般</span>
+                        <span>较好</span>
+                        <span>优秀</span>
+                        <span>很好</span>
+                        <span>牛皮</span>
+                        <span>神了</span>
+                    </div>
+                </div>
+                <div class="score-show">当前评分：<span class="score-value">未选择</span></div>
+            </div>
+            <div class="rating-container">
+                <div class="rating-title">您对JCrying 工具的评分</div>
+                <div class="range-wrap">
+                    <input class="rating-slider" type="range" min="0" max="5" step="0.5" id="tool-rating">
+                    <div class="tick-list">
+                        <span>害人</span>
+                        <span>恶心</span>
+                        <span>极差</span>
+                        <span>差劲</span>
+                        <span>差</span>
+                        <span>差</span>
+                        <span>差</span>
+                        <span>差</span>
+                        <span>差</span>
+                        <span>差</span>
+                        <span>差</span>
+                    </div>
+                </div>
+                <div class="score-show">当前评分：<span class="score-value" id="tool-score">未选择</span></div>
+            </div>
+        </div>
+    </div>
+    <footer>© 2024 JCrying Tool. All rights reserved.</footer>
+</body>
+<script>
+    function toggleMenu(button) {
+        const menu = button.parentElement;
+        menu.classList.toggle('show');
+    }
+    // 多滑块兼容逻辑，移除id依赖，全部使用class
+    const allSliders = document.querySelectorAll('.rating-slider');
+    allSliders.forEach(slider => {
+        const container = slider.closest('.rating-container');
+        const scoreDom = container.querySelector('.score-value');
+        slider.addEventListener('input', () => {
+            scoreDom.textContent = slider.value;
+        })
+    });
+    const toolSlider = document.getElementById('tool-rating');
+    const toolScoreDom = document.getElementById('tool-score');
+    toolSlider.addEventListener('input', () => {
+        if (toolSlider.value == 5) toolScoreDom.innerHTML = `<span style="color: #f00"><strong>我真的有那么好吗？</strong></span>`;
+        else toolScoreDom.textContent = toolSlider.value;
+    });
+</script>
+
+</html>

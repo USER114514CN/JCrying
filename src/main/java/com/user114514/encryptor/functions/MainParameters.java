@@ -28,4 +28,11 @@ public class MainParameters {
         arity = 0
     )
     public boolean avaibleEncryptor;
+
+    @Parameter(
+        names = {"--available-hash-algorithm", "--supported-hash-algorithm", "-aH"},
+        description = "输出当前版本可用的哈希算法。",
+        arity = 0
+    )
+    public boolean availableHashAlgorithm;
 }

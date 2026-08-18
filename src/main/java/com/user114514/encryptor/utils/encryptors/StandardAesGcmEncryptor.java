@@ -4,7 +4,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.user114514.encryptor.excep.IllegalDataException;
+import com.user114514.encryptor.excep.DamagedDataException;
 import com.user114514.encryptor.utils.GeneralEncryptor;
 
 import java.security.SecureRandom;
@@ -42,9 +42,9 @@ public class StandardAesGcmEncryptor extends GeneralEncryptor {
     }
 
     @Override
-    public byte[] decrypt(byte[] data, byte[] key) throws IllegalDataException {
+    public byte[] decrypt(byte[] data, byte[] key) throws DamagedDataException {
         if (data == null || key == null || data.length < GCM_IV_LENGTH) 
-            throw new IllegalDataException("Invalid input");
+            throw new DamagedDataException("Invalid input");
 
         try {
             // 1. 提取 IV
@@ -64,7 +64,7 @@ public class StandardAesGcmEncryptor extends GeneralEncryptor {
             // 4. 解密并验证 Tag (如果 Tag 不匹配，doFinal 会抛出 AEADBadTagException)
             return cipher.doFinal(ciphertext);
         } catch (Exception e) {
-            throw new IllegalDataException("Decryption failed or integrity check failed", e);
+            throw new DamagedDataException("Decryption failed or integrity check failed", e);
         }
     }
 }

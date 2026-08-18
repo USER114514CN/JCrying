@@ -1,6 +1,6 @@
 package com.user114514.encryptor.utils.encoders;
 
-import com.user114514.encryptor.excep.IllegalDataException;
+import com.user114514.encryptor.excep.DamagedDataException;
 import com.user114514.encryptor.utils.GeneralEncoder;
 
 import java.nio.charset.StandardCharsets;
@@ -71,6 +71,10 @@ public class MorseCodeEncoder extends GeneralEncoder {
         CHAR_TO_MORSE.put('\n', "/");
     }
 
+    public MorseCodeEncoder(Map<String, String> options) {
+        super(options);
+    }
+
     private static void put(char c, String morse) {
         CHAR_TO_MORSE.put(c, morse);
         MORSE_TO_CHAR.put(morse, c);
@@ -92,9 +96,8 @@ public class MorseCodeEncoder extends GeneralEncoder {
         for (char ch : rawText.toUpperCase().toCharArray()) {
             String morse = CHAR_TO_MORSE.get(ch);
             if (morse == null) {
-                // // 不支持的字符直接跳过/抛异常，这里选择抛出
-                // throw new IllegalArgumentException("不支持的摩斯密码字符：" + ch);
-                continue;
+                if (Boolean.parseBoolean(options.getOrDefault("skip-illegal-chars", "false"))) continue;
+                throw new IllegalArgumentException("不支持的摩斯密码字符：" + ch);
             }
             morseBuilder.append(morse).append(" ");
         }
@@ -110,10 +113,10 @@ public class MorseCodeEncoder extends GeneralEncoder {
      * 摩斯码字节数组 -> 原始明文字节
      * @param data UTF8编码的摩斯字符串
      * @return 原始明文UTF8字节
-     * @throws IllegalDataException 摩斯格式非法/包含无效码
+     * @throws DamagedDataException 摩斯格式非法/包含无效码
      */
     @Override
-    public byte[] decode(byte[] data) throws IllegalDataException {
+    public byte[] decode(byte[] data) throws DamagedDataException {
         if (data == null || data.length == 0) {
             return new byte[0];
         }
@@ -132,10 +135,33 @@ public class MorseCodeEncoder extends GeneralEncoder {
             }
             Character targetChar = MORSE_TO_CHAR.get(part);
             if (targetChar == null) {
-                throw new IllegalDataException("无效摩斯码片段：" + part);
+                throw new DamagedDataException("无效摩斯码片段：" + part);
             }
             plainBuilder.append(targetChar);
         }
         return plainBuilder.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Override
+    public boolean supportedStreaming() {
+        return true;
+    }
+
+    @Override
+    public void encodeStreaming(java.io.InputStream is, java.io.OutputStream os, int bufferSize) throws Exception {
+        byte[] buffer = new byte[bufferSize];
+        while ((is.read(buffer)) != -1) {
+            byte[] encodedChunk = encode(buffer);
+            os.write(encodedChunk);
+        }
+    }
+
+    @Override
+    public void decodeStreaming(java.io.InputStream is, java.io.OutputStream os, int bufferSize) throws Exception {
+        byte[] buffer = new byte[bufferSize];
+        while ((is.read(buffer)) != -1) {
+            byte[] decodedChunk = decode(buffer);
+            os.write(decodedChunk);
+        }
     }
 }

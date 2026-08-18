@@ -1,6 +1,6 @@
 package com.user114514.encryptor.utils.encryptors;
 
-import com.user114514.encryptor.excep.IllegalDataException;
+import com.user114514.encryptor.excep.DamagedDataException;
 import com.user114514.encryptor.utils.GeneralEncryptor;
 
 import javax.crypto.Cipher;
@@ -44,15 +44,15 @@ public class Rc2Encryptor extends GeneralEncryptor {
     }
 
     @Override
-    public byte[] decrypt(byte[] data, byte[] key) throws IllegalDataException {
+    public byte[] decrypt(byte[] data, byte[] key) throws DamagedDataException {
         if (data == null || key == null) {
-            throw new IllegalDataException("密文、密钥不能为null");
+            throw new DamagedDataException("密文、密钥不能为null");
         }
         if (data.length < IV_BYTE_LEN) {
-            throw new IllegalDataException("密文长度不足，缺失IV向量");
+            throw new DamagedDataException("密文长度不足，缺失IV向量");
         }
         if (key.length < MIN_KEY_LEN || key.length > MAX_KEY_LEN) {
-            throw new IllegalDataException("RC2密钥长度范围：5 ~ 16 字节");
+            throw new DamagedDataException("RC2密钥长度范围：5 ~ 16 字节");
         }
 
         try {
@@ -67,7 +67,7 @@ public class Rc2Encryptor extends GeneralEncryptor {
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(cipherText);
         } catch (Exception e) {
-            throw new IllegalDataException("RC2解密失败：密钥错误或数据损坏", e);
+            throw new DamagedDataException("RC2解密失败：密钥错误或数据损坏", e);
         }
     }
 }

@@ -1,13 +1,13 @@
 package com.user114514.encryptor.utils.encoders;
 
 import java.util.Arrays;
-import com.user114514.encryptor.excep.IllegalDataException;
+import com.user114514.encryptor.excep.DamagedDataException;
 import com.user114514.encryptor.utils.GeneralEncoder;
 
 public class AnyRadixEncoder extends GeneralEncoder {
     private int radix;
     private int singleByteMaxLength;
-    private String assignment = "";
+    private String separator = "";
     private boolean isUpperCase;
 
     public AnyRadixEncoder(int radix) {
@@ -25,15 +25,15 @@ public class AnyRadixEncoder extends GeneralEncoder {
             String byteStr = padLeft(Integer.toUnsignedString(element & 0xFF, radix), singleByteMaxLength, '0');
             if (isUpperCase)
                 byteStr = byteStr.toUpperCase();
-            sb.append(byteStr).append(assignment);
+            sb.append(byteStr).append(separator);
         }
-        sb.delete(sb.length() - assignment.length(), sb.length());
+        sb.delete(sb.length() - separator.length(), sb.length());
         return sb.toString().getBytes();
     }
 
-    public void setAssignment(String assignment) {
+    public void setSeparator(String assignment) {
         if (assignment != null)
-            this.assignment = assignment;
+            this.separator = assignment;
     }
 
     public void setUpperCase(boolean v) {
@@ -41,15 +41,15 @@ public class AnyRadixEncoder extends GeneralEncoder {
     }
 
     @Override
-    public byte[] decode(byte[] data) throws IllegalDataException {
+    public byte[] decode(byte[] data) throws DamagedDataException {
         try {
             if (data == null || data.length == 0)
                 return new byte[0];
             String text = new String(data);
             StringBuilder processor = new StringBuilder(text);
-            while (processor.toString().contains(assignment)) {
-                int sIndex = processor.toString().indexOf(assignment);
-                processor.delete(sIndex, sIndex + assignment.length());
+            while (processor.toString().contains(separator)) {
+                int sIndex = processor.toString().indexOf(separator);
+                processor.delete(sIndex, sIndex + separator.length());
             }
             text = processor.toString();
             if (text.length() % singleByteMaxLength != 0) {
@@ -65,7 +65,7 @@ public class AnyRadixEncoder extends GeneralEncoder {
             }
             return arr;
         } catch (NumberFormatException ex) {
-            throw new IllegalDataException("非法或损坏的数据：" + Arrays.toString(data), ex);
+            throw new DamagedDataException("非法或损坏的数据：" + Arrays.toString(data), ex);
         } catch (Exception e) {
             throw e;
         }
@@ -123,5 +123,30 @@ public class AnyRadixEncoder extends GeneralEncoder {
         // 再拼接原字符串
         sb.append(str);
         return sb.toString();
+    }
+
+    @Override
+    public boolean supportedStreaming() {
+        return true;
+    }
+
+    @Override
+    public void encodeStreaming(java.io.InputStream is, java.io.OutputStream os, int bufferSize) throws Exception {
+        byte[] buffer = new byte[bufferSize];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            byte[] encoded = encode(Arrays.copyOf(buffer, bytesRead));
+            os.write(encoded);
+        }
+    }
+
+    @Override
+    public void decodeStreaming(java.io.InputStream is, java.io.OutputStream os, int bufferSize) throws Exception {
+        byte[] buffer = new byte[bufferSize];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            byte[] decoded = decode(Arrays.copyOf(buffer, bytesRead));
+            os.write(decoded);
+        }
     }
 }

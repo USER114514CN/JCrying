@@ -1,7 +1,9 @@
 package com.user114514.encryptor.functions;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -13,13 +15,21 @@ import java.util.Map;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.user114514.encryptor.ApplicationConfigs;
+import com.user114514.encryptor.excep.DamagedExtractPackageException;
+import com.user114514.encryptor.excep.IllegalManifestException;
 import com.user114514.encryptor.excep.UnknownProcessorNameException;
+import com.user114514.encryptor.extend_pack.AppPathManager;
+import com.user114514.encryptor.extend_pack.ExtendPackageClassLoader;
+import com.user114514.encryptor.extend_pack.ExtendPackageManager;
+import com.user114514.encryptor.extend_pack.PackageManifest;
 import com.user114514.encryptor.utils.GeneralEncoder;
 import com.user114514.encryptor.utils.encoders.AnyRadixEncoder;
 import com.user114514.encryptor.utils.encoders.Base64Encoder;
 import com.user114514.encryptor.utils.encoders.DoNotingEncoder;
 import com.user114514.encryptor.utils.encoders.HexEncoder;
 import com.user114514.encryptor.utils.encoders.MorseCodeEncoder;
+import com.user114514.encryptor_api.ExtendEncoder;
 
 @Parameters(commandNames = "decode", commandDescription = "对一串数据进行解码。")
 public class DecodeCommand {
@@ -44,6 +54,18 @@ public class DecodeCommand {
 
     @Parameter(names = {"--info", "-I"}, description = "展示详细信息。", arity = 0)
     public boolean info;
+
+    @DynamicParameter(names = {"--options", "-O"},
+        description = "解码器的选项参数。",
+        assignment = "="
+    )
+    public Map<String, String> options = new HashMap<>();
+
+    @Parameter(names = {"--streaming", "-S"}, description = "启用流式编码模式。", arity = 0)
+    public boolean streaming;
+
+    @Parameter(names = {"--streaming-buffer-size", "--buffer-size", "-B"}, description = "流式编码模式下的缓冲区大小。", arity = 1)
+    public String streamingBufferSize = "4MB";
 
     public byte[] getData() throws Exception {
         if (textData != null && !textData.isEmpty()) {
@@ -74,7 +96,7 @@ public class DecodeCommand {
         System.out.println(new String(data));
     }
 
-    public GeneralEncoder getDecoder() throws UnknownProcessorNameException {
+    public GeneralEncoder getDecoder() throws Exception {
         if (encoder == null || encoder.isBlank())
             throw new UnknownProcessorNameException("空的解码器名称。");
         switch (encoder.toLowerCase()) {
@@ -93,7 +115,7 @@ public class DecodeCommand {
             case "mose":
             case "mos":
             case "morse-code":
-                return new MorseCodeEncoder();
+                return new MorseCodeEncoder(options);
             case "emp":
             case "empty":
             case "do-noting":
@@ -115,13 +137,65 @@ public class DecodeCommand {
                 AnyRadixEncoder anyRadixEncoder = new AnyRadixEncoder(radixNum);
                 if (encoder.matches("^(r|R)\\d+((a|A)\\[.*\\])$")) {
                     String assignment = encoder.substring(1 + radixStr.length() + 2, encoder.length() - 1);
-                    anyRadixEncoder.setAssignment(assignment);
+                    anyRadixEncoder.setSeparator(assignment);
                 }
                 return anyRadixEncoder;
             } catch (Exception e) {
                 throw e;
             }
         }
+        File userPackDir = new File(AppPathManager.pmgr.getUserConfig(),
+                ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + "algorithm-pack/encode/" + encoder);
+        File globalPackDir = new File(AppPathManager.pmgr.getGlobalDir(), 
+                ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + "algorithm-pack/encode/" + encoder);
+        if (userPackDir.exists()) {
+            return loadDecoder(userPackDir);
+        } else if (globalPackDir.exists()) {
+            return loadDecoder(globalPackDir);
+        }
         throw new UnknownProcessorNameException("未知或不支持的解码器：" + encoder + ", 输入 --available-encoder 查看可用的解码器。");
+    }
+
+    public GeneralEncoder loadDecoder(File packDir) throws Exception {
+        File manifestFile = new File(packDir, "manifest.bin");
+        if (!manifestFile.exists())
+            throw new DamagedExtractPackageException("此扩展包已经正确安装, 但安装完成后安装目录结构可能已经损坏。");
+        PackageManifest manifest = ExtendPackageManager.getManifest(new FileInputStream(manifestFile));
+        if (!manifest.subAttirbutes.containsKey("extrance"))
+            throw new IllegalManifestException("此扩展包没有定义入口类。");
+        String extrance = manifest.subAttirbutes.get("extrance");
+        File coreJarFile = new File(packDir, "core.jar");
+        if (!coreJarFile.exists())
+            throw new DamagedExtractPackageException("无法找到核心Jar文件, 安装目录结构可能已经损坏。");
+        
+        try (ExtendPackageClassLoader loader = new ExtendPackageClassLoader(coreJarFile);) {
+            Class<?> extranceClass = loader.loadClass(extrance);
+            Class<?>[] implementedClasses = extranceClass.getInterfaces();
+            boolean implementedTargetInterface = false;
+            for (Class<?> interfaceClass : implementedClasses) {
+                if (interfaceClass.getName().equals(ExtendEncoder.class.getName()))
+                    implementedTargetInterface = true;
+            }
+            if (!implementedTargetInterface)
+                throw new DamagedExtractPackageException("包的入口类未实现 ExtendEncoder 接口。");
+            ExtendEncoder encoder = null;
+    
+            Constructor<?>[] constructors = extranceClass.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == 0) {
+                    encoder = (ExtendEncoder) constructor.newInstance();
+                    encoder.setOptions(options);
+                    break;
+                }
+                if (constructor.getParameterCount() == 1
+                        && constructor.getParameterTypes()[0].getName().equals(Map.class.getName())) {
+                    encoder = (ExtendEncoder) constructor.newInstance(options);
+                }
+            }
+    
+            if (encoder == null)
+                throw new DamagedExtractPackageException("此扩展包的入口类没有合法的构造器。");
+            return encoder;
+        }
     }
 }

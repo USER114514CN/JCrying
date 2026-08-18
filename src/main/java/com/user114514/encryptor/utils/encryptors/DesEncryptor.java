@@ -1,6 +1,6 @@
 package com.user114514.encryptor.utils.encryptors;
 
-import com.user114514.encryptor.excep.IllegalDataException;
+import com.user114514.encryptor.excep.DamagedDataException;
 import com.user114514.encryptor.utils.GeneralEncryptor;
 
 import javax.crypto.Cipher;
@@ -43,15 +43,15 @@ public class DesEncryptor extends GeneralEncryptor {
     }
 
     @Override
-    public byte[] decrypt(byte[] data, byte[] key) throws IllegalDataException {
+    public byte[] decrypt(byte[] data, byte[] key) throws DamagedDataException {
         if (data == null || key == null) {
-            throw new IllegalDataException("data/key 不能为 null。");
+            throw new DamagedDataException("data/key 不能为 null。");
         }
         if (data.length < IV_LEN) {
-            throw new IllegalDataException("cipher 文本过短，丢失 IV。");
+            throw new DamagedDataException("cipher 文本过短，丢失 IV。");
         }
         if (key.length != KEY_LEN) {
-            throw new IllegalDataException("DES 密钥必须为8字节。");
+            throw new DamagedDataException("DES 密钥必须为8字节。");
         }
         try {
             // 拆分IV与密文
@@ -66,7 +66,7 @@ public class DesEncryptor extends GeneralEncryptor {
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(cipherText);
         } catch (Exception e) {
-            throw new IllegalDataException("DES 解密失败, 无效密钥或数据。", e);
+            throw new DamagedDataException("DES 解密失败, 无效密钥或数据。", e);
         }
     }
 }

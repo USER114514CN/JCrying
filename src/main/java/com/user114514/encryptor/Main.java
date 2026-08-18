@@ -7,7 +7,10 @@ import com.user114514.encryptor.functions.DecodeCommand;
 import com.user114514.encryptor.functions.DecryptCommand;
 import com.user114514.encryptor.functions.EncodeCommand;
 import com.user114514.encryptor.functions.EncryptCommand;
+import com.user114514.encryptor.functions.HashCommand;
 import com.user114514.encryptor.functions.MainParameters;
+import com.user114514.encryptor.functions.PackdevCommand;
+import com.user114514.encryptor.functions.PackmgrCommand;
 
 public class Main {
     public static void main(String[] args) {
@@ -17,15 +20,22 @@ public class Main {
             DecodeCommand decodeCommand = new DecodeCommand();
             EncryptCommand encryptCommand = new EncryptCommand();
             DecryptCommand decryptCommand = new DecryptCommand();
+            HashCommand hashCommand = new HashCommand();
+
+            PackmgrCommand packmgrCommand = new PackmgrCommand();
+            PackdevCommand packdevCommand = new PackdevCommand();
 
             JCommander cmd = new JCommander.Builder()
-                    .programName(VersionConfig.APPLICATION_NAME)
+                    .programName(ApplicationConfigs.APPLICATION_NAME)
                     .addObject(mainParameters)
                     .addCommand(encodeCommand)
                     .addCommand(decodeCommand)
                     .addCommand(encryptCommand)
                     .addCommand(decryptCommand)
-                    .build();
+                    .addCommand(hashCommand)
+                    .addCommand(packmgrCommand)
+                    .addCommand(packdevCommand)
+                .build();
 
             if (args.length == 0) {
                 cmd.usage();
@@ -35,19 +45,20 @@ public class Main {
             cmd.parse(args);
 
             if (mainParameters.version) {
-                System.out.printf("%s %tY %s\n", VersionConfig.APPLICATION_NAME, new Date(), VersionConfig.VER_NAME);
+                System.out.printf("%s %tY %s\n", ApplicationConfigs.APPLICATION_NAME, new Date(), ApplicationConfigs.VER_NAME);
             } else if (mainParameters.help) {
                 cmd.usage();
             } else if (mainParameters.avaibleEncoder) {
-                System.out.printf("当前版本 %s 可用的编码器：\n%s\n", VersionConfig.VER_NAME,
-                        String.join("\n", VersionConfig.SUPPORTED_ENCODER));
+                System.out.printf("当前版本 %s 可用的编码器：\n%s\n", ApplicationConfigs.VER_NAME,
+                        String.join("\n", ApplicationConfigs.SUPPORTED_ENCODER));
             } else if (mainParameters.avaibleEncryptor) {
-                System.out.printf("当前版本 %s 可用的加密器：\n%s\n", VersionConfig.VER_NAME,
-                        String.join("\n", VersionConfig.SUPPORTED_ENCRYPTOR));
+                System.out.printf("当前版本 %s 可用的加密器：\n%s\n", ApplicationConfigs.VER_NAME,
+                        String.join("\n", ApplicationConfigs.SUPPORTED_ENCRYPTOR));
             } else {
                 String commandName = cmd.getParsedCommand();
 
                 int code = 0;
+                boolean displayStatus = true;
 
                 if (commandName.equals("encode")) {
                     code = CoreServices.executeEncodeCommand(cmd, encodeCommand);
@@ -57,9 +68,15 @@ public class Main {
                     code = CoreServices.executeEncryptCommand(cmd, encryptCommand);
                 } else if (commandName.equals("decrypt")) {
                     code = CoreServices.executeDecryptCommand(cmd, decryptCommand);
+                } else if (commandName.equals("hash")) {
+                    code = CoreServices.executeHashCommand(cmd, hashCommand);
+                } else if (commandName.equals("packmgr")) {
+                    code = CoreServices.executePackmgrCommand(cmd, packmgrCommand);
+                } else if (commandName.equals("buildpack")) {
+                    code = CoreServices.executePackdevCommand(cmd, packdevCommand);
                 }
 
-                System.out.printf("%s, 状态码: %#x\n", (code == 0x00 ? "成功" : "错误"), code);
+                if (displayStatus) System.out.printf("%s, 状态码: %#x\n", (code == 0x00 ? "成功" : "错误"), code);
             }
 
         } catch (ParameterException syntaxException) {

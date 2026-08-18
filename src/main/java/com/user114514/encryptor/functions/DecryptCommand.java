@@ -1,7 +1,9 @@
 package com.user114514.encryptor.functions;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
@@ -13,7 +15,14 @@ import java.util.Map;
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.user114514.encryptor.ApplicationConfigs;
+import com.user114514.encryptor.excep.DamagedExtractPackageException;
+import com.user114514.encryptor.excep.IllegalManifestException;
 import com.user114514.encryptor.excep.UnknownProcessorNameException;
+import com.user114514.encryptor.extend_pack.AppPathManager;
+import com.user114514.encryptor.extend_pack.ExtendPackageClassLoader;
+import com.user114514.encryptor.extend_pack.ExtendPackageManager;
+import com.user114514.encryptor.extend_pack.PackageManifest;
 import com.user114514.encryptor.utils.GeneralEncryptor;
 import com.user114514.encryptor.utils.encoders.HexEncoder;
 import com.user114514.encryptor.utils.encryptors.BlowfishEncryptor;
@@ -22,6 +31,7 @@ import com.user114514.encryptor.utils.encryptors.DesEncryptor;
 import com.user114514.encryptor.utils.encryptors.Rc2Encryptor;
 import com.user114514.encryptor.utils.encryptors.StandardAesGcmEncryptor;
 import com.user114514.encryptor.utils.encryptors.XOREncryptor;
+import com.user114514.encryptor_api.ExtendEncryptor;
 
 @Parameters(commandNames = "decrypt", commandDescription = "对一串数据进行解密。")
 public class DecryptCommand {
@@ -61,6 +71,15 @@ public class DecryptCommand {
     
     @Parameter(names = {"--info", "-I"}, description = "展示详细信息。", arity = 0)
     public boolean info;
+
+    @Parameter(names = {"--streaming", "-S"}, description = "启用流式加密模式。", arity = 0)
+    public boolean streaming;
+
+    @Parameter(names = {"--streaming-buffer-size", "--buffer-size", "-B"}, description = "流式加密模式下的缓冲区大小。", arity = 1)
+    public String streamingBufferSize = "4MB";
+
+    @DynamicParameter(names = {"-options", "-O"}, descriptionKey = "解密器的选项。")
+    public Map<String, String> options = new HashMap<>();
 
     public DecryptCommand() {
 
@@ -116,7 +135,7 @@ public class DecryptCommand {
         System.out.println(new String(data));
     }
 
-    public GeneralEncryptor getDecryptor() throws UnknownProcessorNameException {
+    public GeneralEncryptor getDecryptor() throws Exception {
         if (encryptor == null || encryptor.isBlank())
             throw new UnknownProcessorNameException("空的解密器名称。");
         switch (encryptor.toLowerCase()) {
@@ -130,6 +149,58 @@ public class DecryptCommand {
             case "blowfish": return new BlowfishEncryptor();
             case "rc2": return new Rc2Encryptor();
         }
+        File userPackDir = new File(AppPathManager.pmgr.getUserConfig(),
+                ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + "algorithm-pack/encrypt/" + encryptor);
+        File globalPackDir = new File(AppPathManager.pmgr.getGlobalDir(), 
+                ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + "algorithm-pack/encrypt/" + encryptor);
+        if (userPackDir.exists()) {
+            return loadDecryptor(userPackDir);
+        } else if (globalPackDir.exists()) {
+            return loadDecryptor(globalPackDir);
+        }
         throw new UnknownProcessorNameException("未知或不支持的解密器：" + encryptor + ", 输入 --available-encryptor 查看可用的加密器。");
+    }
+
+    public GeneralEncryptor loadDecryptor(File packDir) throws Exception {
+        File manifestFile = new File(packDir, "manifest.bin");
+        if (!manifestFile.exists())
+            throw new DamagedExtractPackageException("此扩展包已经正确安装, 但安装完成后安装目录结构可能已经损坏。");
+        PackageManifest manifest = ExtendPackageManager.getManifest(new FileInputStream(manifestFile));
+        if (!manifest.subAttirbutes.containsKey("extrance"))
+            throw new IllegalManifestException("此扩展包没有定义入口类。");
+        String extrance = manifest.subAttirbutes.get("extrance");
+        File coreJarFile = new File(packDir, "core.jar");
+        if (!coreJarFile.exists())
+            throw new DamagedExtractPackageException("无法找到核心Jar文件, 安装目录结构可能已经损坏。");
+        
+        try (ExtendPackageClassLoader loader = new ExtendPackageClassLoader(coreJarFile);) {
+            Class<?> extranceClass = loader.loadClass(extrance);
+            Class<?>[] implementedClasses = extranceClass.getInterfaces();
+            boolean implementedTargetInterface = false;
+            for (Class<?> interfaceClass : implementedClasses) {
+                if (interfaceClass.getName().equals(ExtendEncryptor.class.getName()))
+                    implementedTargetInterface = true;
+            }
+            if (!implementedTargetInterface)
+                throw new DamagedExtractPackageException("包的入口类未实现 ExtendEncryptor 接口。");
+            ExtendEncryptor encryptor = null;
+    
+            Constructor<?>[] constructors = extranceClass.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == 0) {
+                    encryptor = (ExtendEncryptor) constructor.newInstance();
+                    encryptor.setOptions(options);
+                    break;
+                }
+                if (constructor.getParameterCount() == 1
+                        && constructor.getParameterTypes()[0].getName().equals(Map.class.getName())) {
+                    encryptor = (ExtendEncryptor) constructor.newInstance(options);
+                }
+            }
+    
+            if (encryptor == null)
+                throw new DamagedExtractPackageException("此扩展包的入口类没有合法的构造器。");
+            return encryptor;
+        }
     }
 }

@@ -2,10 +2,18 @@ package com.user114514.encryptor.utils.encoders;
 
 import java.nio.charset.StandardCharsets;
 
-import com.user114514.encryptor.excep.IllegalDataException;
+import com.user114514.encryptor.excep.DamagedDataException;
 import com.user114514.encryptor.utils.GeneralEncoder;
 
 public class HexEncoder extends GeneralEncoder {
+
+    public HexEncoder() {
+        super();
+    }
+
+    public HexEncoder(java.util.Map<String, String> options) {
+        super(options);
+    }
 
     @Override
     public byte[] encode(byte[] data) {
@@ -14,12 +22,12 @@ public class HexEncoder extends GeneralEncoder {
     }
 
     @Override
-    public byte[] decode(byte[] data) throws IllegalDataException {
+    public byte[] decode(byte[] data) throws DamagedDataException {
         try {
             String hexStr = new String(data, StandardCharsets.UTF_8);
             return hexToBytes(hexStr);
         } catch (NumberFormatException e) {
-            throw new IllegalDataException("输入进编码器的数据并不是有效的十六进制字符串。", e);
+            throw new DamagedDataException("输入进编码器的数据并不是有效的十六进制字符串。", e);
         }
     }
 
@@ -53,5 +61,30 @@ public class HexEncoder extends GeneralEncoder {
             sb.append(s);
         }
         return sb.toString();
+    }
+
+    @Override
+    public boolean supportedStreaming() {
+        return true;
+    }
+
+    @Override
+    public void encodeStreaming(java.io.InputStream is, java.io.OutputStream os, int bufferSize) throws Exception {
+        byte[] buffer = new byte[bufferSize];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            byte[] encoded = encode(java.util.Arrays.copyOf(buffer, bytesRead));
+            os.write(encoded);
+        }
+    }
+
+    @Override
+    public void decodeStreaming(java.io.InputStream is, java.io.OutputStream os, int bufferSize) throws Exception {
+        byte[] buffer = new byte[bufferSize];
+        int bytesRead;
+        while ((bytesRead = is.read(buffer)) != -1) {
+            byte[] decoded = decode(java.util.Arrays.copyOf(buffer, bytesRead));
+            os.write(decoded);
+        }
     }
 }

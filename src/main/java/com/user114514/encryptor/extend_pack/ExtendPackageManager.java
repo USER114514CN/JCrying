@@ -30,7 +30,7 @@ public class ExtendPackageManager {
         DataInputStream dis = new DataInputStream(is);
         try {
             String typeId = dis.readUTF();
-            if (typeId.equals(ApplicationConfigs.PACKAGE_FILE_IDENTIFIER)) throw new DamagedExtractPackageException("此文件并不是扩展包类型。");
+            if (!typeId.equals(ApplicationConfigs.PACKAGE_FILE_IDENTIFIER)) throw new DamagedExtractPackageException("此文件并不是扩展包类型。");
             String xmlManifest = dis.readUTF();
             PackageManifest manifest = PackageManifest.loadBy(xmlManifest);
     
@@ -45,6 +45,7 @@ public class ExtendPackageManager {
             File installedPackDir = new File((forEveryone ? AppPathManager.pmgr.getGlobalDir() : AppPathManager.pmgr.getUserConfig()), ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + typeFullyName(manifest.type) + "/" + algorithmType + "/");
             installedPackDir.mkdirs();
             File targetDir = new File(installedPackDir, manifest.packId);
+            targetDir.mkdirs();
             if (!targetDir.toPath().toRealPath().startsWith(installedPackDir.toPath().toRealPath())) throw new SecurityRiskException("此扩展包并不安全, 它绕过了文件名合法校验并正在进行路径穿越以修改安装目录之外的文件, 请务必重视此警告。");
             
             File coreJarFile = new File(targetDir, "core.jar");
@@ -64,7 +65,7 @@ public class ExtendPackageManager {
     public static PackageManifest getManifest(InputStream is) throws Exception {
         DataInputStream dis = new DataInputStream(is);
         String typeId = dis.readUTF();
-        if (typeId.equals(ApplicationConfigs.PACKAGE_FILE_IDENTIFIER)) throw new DamagedExtractPackageException("此文件并不是扩展包类型。");
+        if (!typeId.equals(ApplicationConfigs.PACKAGE_FILE_IDENTIFIER)) throw new DamagedExtractPackageException("此文件并不是扩展包类型。");
         String xmlManifest = dis.readUTF();
         PackageManifest manifest = PackageManifest.loadBy(xmlManifest);
 
@@ -79,6 +80,11 @@ public class ExtendPackageManager {
             manifest = (PackageManifest) ois.readObject();
         }
         return manifest;
+    }
+
+    public static PackageManifest getBinaryManifest(InputStream is) throws Exception {
+        ObjectInputStream ois = new ObjectInputStream(is);
+        return (PackageManifest) ois.readObject();
     }
 
     // 返回是否存在

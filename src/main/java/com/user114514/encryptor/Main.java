@@ -15,6 +15,7 @@ import com.user114514.encryptor.functions.PackmgrCommand;
 public class Main {
     public static void main(String[] args) {
         try {
+            args = new String[] { "encode", "--encoder", "demo-reverse-encoder", "-Ttext=Hello", "--hex-output" };
             MainParameters mainParameters = new MainParameters();
             EncodeCommand encodeCommand = new EncodeCommand();
             DecodeCommand decodeCommand = new DecodeCommand();

@@ -165,27 +165,23 @@ public class EncryptCommand {
         File manifestFile = new File(packDir, "manifest.bin");
         if (!manifestFile.exists())
             throw new DamagedExtractPackageException("此扩展包已经正确安装, 但安装完成后安装目录结构可能已经损坏。");
-        PackageManifest manifest = ExtendPackageManager.getManifest(new FileInputStream(manifestFile));
-        if (!manifest.subAttirbutes.containsKey("extrance"))
+        PackageManifest manifest = ExtendPackageManager.getBinaryManifest(new FileInputStream(manifestFile));
+        if (!manifest.subAttirbutes.containsKey("entrance"))
             throw new IllegalManifestException("此扩展包没有定义入口类。");
-        String extrance = manifest.subAttirbutes.get("extrance");
+        String entrance = manifest.subAttirbutes.get("entrance");
         File coreJarFile = new File(packDir, "core.jar");
         if (!coreJarFile.exists())
             throw new DamagedExtractPackageException("无法找到核心Jar文件, 安装目录结构可能已经损坏。");
         
         try (ExtendPackageClassLoader loader = new ExtendPackageClassLoader(coreJarFile);) {
-            Class<?> extranceClass = loader.loadClass(extrance);
-            Class<?>[] implementedClasses = extranceClass.getInterfaces();
-            boolean implementedTargetInterface = false;
-            for (Class<?> interfaceClass : implementedClasses) {
-                if (interfaceClass.getName().equals(ExtendEncryptor.class.getName()))
-                    implementedTargetInterface = true;
-            }
+            loader.whitelistPerfixs.add(entrance);
+            Class<?> entranceClass = loader.loadClass(entrance);
+            boolean implementedTargetInterface = ExtendEncryptor.class.isAssignableFrom(entranceClass);
             if (!implementedTargetInterface)
                 throw new DamagedExtractPackageException("包的入口类未实现 ExtendEncryptor 接口。");
             ExtendEncryptor encryptor = null;
     
-            Constructor<?>[] constructors = extranceClass.getDeclaredConstructors();
+            Constructor<?>[] constructors = entranceClass.getDeclaredConstructors();
             for (Constructor<?> constructor : constructors) {
                 if (constructor.getParameterCount() == 0) {
                     encryptor = (ExtendEncryptor) constructor.newInstance();

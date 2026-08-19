@@ -87,10 +87,10 @@ public class ExtendPackageManager {
         return (PackageManifest) ois.readObject();
     }
 
-    // 返回是否存在
     public static void uninstallPack(String packId, boolean forEveryone) throws Exception {
         if (!isInstalled(packId, forEveryone)) throw new PackageNotInstalledException("包 ID 为 " + packId + "未安装。");
         deleteDir(findPack(packId, forEveryone));
+        removeFromInstalledList(packId, forEveryone);
     }
 
     public static File findPack(String packId, boolean forEveryone) {
@@ -143,8 +143,12 @@ public class ExtendPackageManager {
 
     public static void removeFromInstalledList(String packId, boolean forEveryone) throws Exception {
         File installedPackListFile = new File((forEveryone ? AppPathManager.pmgr.getGlobalDir() : AppPathManager.pmgr.getUserConfig()), ApplicationConfigs.INSTALLED_PACKAGES_LIST_FILE);
-        String content = readOrEmpty(installedPackListFile.toPath()).replace(packId + "\n", "");
-        Files.writeString(installedPackListFile.toPath(), content, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        var remainingPackIds = Files.readAllLines(installedPackListFile.toPath(), StandardCharsets.UTF_8)
+            .stream()
+            .filter(installedPackId -> !installedPackId.equals(packId))
+            .toList();
+        Files.write(installedPackListFile.toPath(), remainingPackIds, StandardCharsets.UTF_8,
+            StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     }
 
     public static String getAllInstalledList(boolean forEveryone) throws Exception {

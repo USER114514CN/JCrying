@@ -5,8 +5,9 @@ import java.util.ResourceBundle;
 import java.util.Scanner;
 
 public class ApplicationConfigs {
-    public static final int VER_CODE = 1;
-    public static final String VER_NAME = "beta-v0.4";
+    // TODO: 我这个傻子，别忘了迭代版本
+    public static final int VER_CODE = 5;
+    public static final String VER_NAME = "beta-v1.0.1";
     public static final String APPLICATION_NAME = "jcrying";
 
     public static final List<String> ALGORITHM_TYPES = List.of(

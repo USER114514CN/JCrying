@@ -2,18 +2,28 @@ package com.user114514.encryptor.functions;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 
 import com.beust.jcommander.DynamicParameter;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.user114514.encryptor.ApplicationConfigs;
+import com.user114514.encryptor.excep.DamagedExtractPackageException;
+import com.user114514.encryptor.excep.IllegalManifestException;
 import com.user114514.encryptor.excep.UnknownProcessorNameException;
+import com.user114514.encryptor.extend_pack.AppPathManager;
+import com.user114514.encryptor.extend_pack.ExtendPackageClassLoader;
+import com.user114514.encryptor.extend_pack.ExtendPackageManager;
+import com.user114514.encryptor.extend_pack.PackageManifest;
+import com.user114514.encryptor_api.ExtendHashAlgorithm;
 import com.user114514.encryptor.utils.GeneralHashAlgorithm;
 import com.user114514.encryptor.utils.encoders.HexEncoder;
 import com.user114514.encryptor.utils.hashalgorithms.HMACSHA256HashAlgorithm;
@@ -133,15 +143,72 @@ public class HashCommand {
         return new byte[0];
     }
 
-    public GeneralHashAlgorithm getHashAlgorithm() throws UnknownProcessorNameException {
+    public GeneralHashAlgorithm getHashAlgorithm() throws Exception {
         switch (hashAlgorithm.toLowerCase()) {
             case "hmac-sha-256":
             case "sha-256":
                 return new HMACSHA256HashAlgorithm(options);
             case "sha-256-simplesalt":
                 return new SHA256HashAlgorithm(options);
-            default:
-                throw new UnknownProcessorNameException("未知的哈希函数：" + hashAlgorithm);
+        }
+
+        File userPackDir = new File(AppPathManager.pmgr.getUserConfig(),
+                ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + "algorithm-pack/hash/" + hashAlgorithm);
+        File globalPackDir = new File(AppPathManager.pmgr.getGlobalDir(),
+                ApplicationConfigs.PACKAGE_INSTALLED_PERFIX + "algorithm-pack/hash/" + hashAlgorithm);
+        if (userPackDir.exists()) {
+            return loadHashAlgorithm(userPackDir);
+        } else if (globalPackDir.exists()) {
+            return loadHashAlgorithm(globalPackDir);
+        }
+        throw new UnknownProcessorNameException("未知或不支持的哈希函数：" + hashAlgorithm);
+    }
+
+    public GeneralHashAlgorithm loadHashAlgorithm(File packDir) throws Exception {
+        File manifestFile = new File(packDir, "manifest.bin");
+        if (!manifestFile.exists()) {
+            throw new DamagedExtractPackageException("此扩展包已经正确安装, 但安装完成后安装目录结构可能已经损坏。");
+        }
+
+        PackageManifest manifest = ExtendPackageManager.getBinaryManifest(new FileInputStream(manifestFile));
+        if (!"hash".equalsIgnoreCase(manifest.subAttirbutes.get("algorithmType"))) {
+            throw new IllegalManifestException("此扩展包不是哈希算法包。");
+        }
+        if (!manifest.subAttirbutes.containsKey("entrance")) {
+            throw new IllegalManifestException("此扩展包没有定义入口类。");
+        }
+
+        String entrance = manifest.subAttirbutes.get("entrance");
+        File coreJarFile = new File(packDir, "core.jar");
+        if (!coreJarFile.exists()) {
+            throw new DamagedExtractPackageException("无法找到核心Jar文件, 安装目录结构可能已经损坏。");
+        }
+
+        try (ExtendPackageClassLoader loader = new ExtendPackageClassLoader(coreJarFile)) {
+            loader.whitelistPerfixs.add(entrance);
+            Class<?> entranceClass = loader.loadClass(entrance);
+            if (!ExtendHashAlgorithm.class.isAssignableFrom(entranceClass)) {
+                throw new DamagedExtractPackageException("包的入口类未实现 ExtendHashAlgorithm 接口。");
+            }
+
+            ExtendHashAlgorithm hashAlgorithmInstance = null;
+            Constructor<?>[] constructors = entranceClass.getDeclaredConstructors();
+            for (Constructor<?> constructor : constructors) {
+                if (constructor.getParameterCount() == 0) {
+                    hashAlgorithmInstance = (ExtendHashAlgorithm) constructor.newInstance();
+                    hashAlgorithmInstance.setOptions(options);
+                    break;
+                }
+                if (constructor.getParameterCount() == 1
+                        && constructor.getParameterTypes()[0].getName().equals(Map.class.getName())) {
+                    hashAlgorithmInstance = (ExtendHashAlgorithm) constructor.newInstance(options);
+                }
+            }
+
+            if (hashAlgorithmInstance == null) {
+                throw new DamagedExtractPackageException("此扩展包的入口类没有合法的构造器。");
+            }
+            return hashAlgorithmInstance;
         }
     }
 
